@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+
+	<div id="app">
+
+	  <div class="row">
+
+  	  	<div class="col-md-12">
+
+        <h2 style="text-align: center; margin-bottom: 25px;">{{ title }}</h2>
+
+        </div>
+    </div>
+
+    <div class="row">
+
+      <div class="col-md-3">
+      </div>
+	  	<div class="col-md-6">
+
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="search word..." v-model:value="searchedword" @keyup.enter="fetchDefinition" >
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button" @click="fetchDefinition">
+            <span class="glyphicon glyphicon-search text-white"></span>
+          </button>
+        </span>
+      </div>
+
+      </div>
+	  	<div class="col-md-3">  
+      </div>
+
+	  </div>
+
+    <div class="row">
+      <div class="col-md-3">
+
+      </div>
+
+
+      <div class="col-md-6">
+
+
+          <div v-for="(set, partofspeech) in definitions" style="margin-top: 30px">
+
+           <p style="font-size: 17px; margin-bottom: 20px"><span class="label label-info">{{ partofspeech }}</span></p>
+
+           <div v-for="(worddefinition, index) in set">
+
+             <p style="border-left: 1px solid rgb(173, 173, 173) !important; padding-left: 10px;"><span class="badge">{{index + 1}}</span> <span v-html="worddefinition.text"></span></p>
+             
+           </div>
+          
+
+          </div>
+   
+      
+
+      </div>
+
+      <div class="col-md-3">
+      </div>
+
+
+
+
+    </div>
+
+	 </div>
+	  
+</div>
+	
+</div>
+
+
+<script>
+var vm = new Vue({
+  el: '#app',
+  data: {
+
+          'title': 'My Dictionary',
+          'searchedword':'Dictionary',
+          'definition': '',
+          'definitions': {}
+
+
+
+  		},
+
+      mounted : function(){
+
+        this.fetchDefinition();
+      
+
+      },
+
+  		methods:{
+
+
+            fetchDefinition: function(){
+
+              console.log("now fetching the definition");
+
+              
+
+              axios.get('https://api.wordnik.com/v4/word.json/'+this.searchedword.toLowerCase()+'/definitions?limit=200&includeRelated=false&useCanonical=false&includeTags=false&api_key=k0souudeaeead9zs894cw1rzilyryoccfdzmeozo85kymil10', {})
+                .then(function (response) {
+
+                  vm.definition = response.data[0];
+                  vm.definitions = vm.arrangeAccordingToPartOfSpeech(response.data);
+                 
+
+                });
+
+
+            },
+
+
+            arrangeAccordingToPartOfSpeech: function (definitions) {
+
+              var arrangedDefinitions ={};
+
+
+              $.each( definitions, function( key, definition ) {
+
+
+                if((definition.partOfSpeech) && (definition.text)){
+
+                  if(definition.partOfSpeech in arrangedDefinitions){
+
+                      arrangedDefinitions[definition.partOfSpeech].push(definition);
+
+                  }else{
+
+
+                      arrangedDefinitions[definition.partOfSpeech] = new Array();
+                      arrangedDefinitions[definition.partOfSpeech].push(definition);
+
+                  }
+
+                }
+                
+              }); 
+
+              return arrangedDefinitions;
+
+              
+            }
+      			
+
+  		}
+
+})
+</script>
+
+
+
+
+
